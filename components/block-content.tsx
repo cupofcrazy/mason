@@ -1,27 +1,68 @@
-import { urlFor } from "@/utils/sanity-image.builder"
-import { PortableText, type PortableTextReactComponents, type PortableTextProps } from "@portabletext/react"
-import Image from "next/image"
+"use client"
 
+import MuxPlayer from "@mux/mux-player-react"; 
+import {
+  PortableText,
+  type PortableTextReactComponents,
+  type PortableTextProps,
+  PortableTextTypeComponentProps,
+} from "@portabletext/react";
+import { Slider } from "./slider";
+import { CustomImage } from "./custom-image";
 
 interface BlockContentProps extends PortableTextProps {}
 
 export const BlockContent = (props: BlockContentProps) => {
   return (
-    <div className="prose prose-slate w-full max-w-none">
+    <div className="prose prose-neutral w-full max-w-none">
       <PortableText {...props} components={components} />
     </div>
-  )
-}
+  );
+};
 
 // @ts-ignore
 const components: PortableTextReactComponents = {
   types: {
-    image: ({ value, isInline }) => (
-      <Image className="border my-2" src={urlFor(value).url()} alt={value.alt || "" } width={300} height={500} />
-    )
+    a11yImage: ({ value, ...props }) => {
+      return (
+        <CustomImage
+          placeholder="blur"
+          src={value.image}
+          alt={value.alt || ""}
+          width={value.image.metadata.dimensions.width}
+          height={value.image.metadata.dimensions.height}
+        />
+      );
+    },
+    slideshow: ({ value, ...props }) => {
+      return (
+        <Slider slides={value.images} />
+      )
+    },
+    "mux.video": ({ value, ...props }) => {
+      return (
+        <MuxPlayer playbackId={value.asset.playbackId} />
+      );
+    }
   },
-  marks: {},
+  marks: {
+    link: ({children, value}) => {
+      const rel = 'noreferrer noopener'
+      return (
+        <a href={value.href} rel={rel}>
+          {children}
+        </a>
+      )
+    },
+  },
   listItem: {
-    bullet: ({ children }) => <li className="text-neutral-500 ml-2">{ children }</li>,
+    bullet: ({ children }) => <li>{children}</li>,
+  },
+  block: {
+    unknownBlockStyle: ({ children }) => <p className="text-red-600">{children}</p>,
   }
-}
+};
+
+
+
+
